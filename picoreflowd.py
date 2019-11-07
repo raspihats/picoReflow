@@ -15,8 +15,8 @@ try:
     sys.dont_write_bytecode = True
     import config
     sys.dont_write_bytecode = False
-except:
-    print "Could not import config file."
+except Exception as e:
+    print "Could not import config file. " + str(e)
     print "Copy config.py.EXAMPLE to config.py and adapt it for your setup."
     exit(1)
 
@@ -86,7 +86,8 @@ def handle_control():
             elif msgdict.get("cmd") == "STOP":
                 log.info("Stop command received")
                 oven.abort_run()
-        except WebSocketError:
+        except Exception as e:
+            log.error(e)
             break
     log.info("websocket (control) closed")
 
@@ -120,7 +121,8 @@ def handle_storage():
             elif msgdict.get("cmd") == "PUT":
                 log.info("PUT command received")
                 profile_obj = msgdict.get('profile')
-                force = msgdict.get('force', False)
+                # force = msgdict.get('force', False)
+                force = True
                 if profile_obj:
                     #del msgdict["cmd"]
                     if save_profile(profile_obj, force):
@@ -131,7 +133,8 @@ def handle_storage():
 
                     wsock.send(json.dumps(msgdict))
                     wsock.send(get_profiles())
-        except WebSocketError:
+        except Exception as e:
+            log.error(e)
             break
     log.info("websocket (storage) closed")
 
@@ -144,7 +147,8 @@ def handle_config():
         try:
             message = wsock.receive()
             wsock.send(get_config())
-        except WebSocketError:
+        except Exception as e:
+            log.error(e)
             break
     log.info("websocket (config) closed")
 
@@ -158,7 +162,8 @@ def handle_status():
         try:
             message = wsock.receive()
             wsock.send("Your message was: %r" % message)
-        except WebSocketError:
+        except Exception as e:
+            log.error(e)
             break
     log.info("websocket (status) closed")
 
@@ -202,7 +207,7 @@ def get_config():
         "time_scale_slope": config.time_scale_slope,
         "time_scale_profile": config.time_scale_profile,
         "kwh_rate": config.kwh_rate,
-        "currency_type": config.currency_type})    
+        "currency_type": config.currency_type})
 
 
 def main():
